@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const cors = require('cors'); // Add this line
 
 
@@ -50,7 +50,6 @@ app.post('/signup', (req, res) => {
   });
 });
 
-
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -83,6 +82,43 @@ app.post('/login', (req, res) => {
     }
   });
 });
+
+app.post('/reservation', (req, res) => {
+  const {  fullName, email, phone } = req.body;
+
+  // Validate input fields
+  if ( !fullName || !email || !phone) {
+    return res.status(400).json({ error: 'Invalid input. Please fill in all fields.' });
+  }
+
+  // Insert reservation details into the database
+  const reservationQuery = 'INSERT INTO reservations ( full_name, email, phone) VALUES ( ?, ?, ?)';
+  db.query(reservationQuery, [ fullName, email, phone], (err, results) => {
+    if (err) {
+      console.error('Error executing reservation query:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    // Reservation successful
+    console.log('Reservation added successfully');
+    res.json({ success: true });
+  });
+});
+
+app.get('/trips', async (req, res) => {
+  try {
+    // Execute a SELECT query to fetch data from the 'trips' table
+    const query = 'SELECT * FROM trip';
+    const [results, fields] = await db.promise().query(query);
+
+    // Send the results as JSON in the response
+    res.json(results);
+  } catch (error) {
+    console.error('Error fetching trips:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 
